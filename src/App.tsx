@@ -59,8 +59,18 @@ export default function App() {
     setReceipts(prev => prev.map(r => r.id === id ? { ...r, status: 'processing' } : r));
 
     try {
-      const formData = new FormData();
-      formData.append('receipt', file);
+      const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.includes(',') ? result.split(',')[1] : result);
+        };
+        reader.onerror = error => reject(error);
+      });
+
+      const base64Data = await toBase64(file);
+      const mimeType = file.type;
 
       let response;
       let retries = 3;
@@ -71,7 +81,10 @@ export default function App() {
         try {
           response = await fetch('/api/extract', {
             method: 'POST',
-            body: formData,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ base64Data, mimeType }),
           });
 
           const contentType = response.headers.get("content-type");
