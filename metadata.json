@@ -1,0 +1,6 @@
+{
+  "name": "AI Receipt to Excel Converter",
+  "description": "Automatically extract structured data from receipts and export them to Excel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
