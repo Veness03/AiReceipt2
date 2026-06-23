@@ -1,5 +1,4 @@
 import express from 'express';
-import multer from 'multer';
 import { GoogleGenAI, Type } from '@google/genai';
 import path from 'path';
 import fs from 'fs';
@@ -9,28 +8,15 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
   
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   
-  // Set up Multer for form-data (memory storage, to easily pipe buffer to Gemini)
-  const upload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
-  });
-
   // Extract receipt route
-  app.post('/api/extract', (req, res, next) => {
-    upload.single('receipt')(req, res, (err) => {
-      if (err instanceof multer.MulterError) {
-        return res.status(400).json({ error: `Upload error: ${err.message}` });
-      } else if (err) {
-        return res.status(500).json({ error: `Unknown upload error: ${err.message}` });
-      }
-      next();
-    });
-  }, async (req, res) => {
+  app.post('/api/extract', async (req, res) => {
     try {
-      if (!req.file) {
+      const { base64Data, mimeType } = req.body;
+      
+      if (!base64Data || !mimeType) {
         return res.status(400).json({ error: 'No receipt file provided.' });
       }
 
@@ -39,8 +25,6 @@ async function startServer() {
       }
 
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const mimeType = req.file.mimetype;
-      const base64Data = req.file.buffer.toString('base64');
 
       
       const receiptSchema = {
