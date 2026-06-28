@@ -22,6 +22,9 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (!session) {
+        setReceipts([]);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -402,7 +405,7 @@ export default function App() {
       
       <footer className="h-12 border-t border-slate-200 bg-white flex items-center justify-between px-8 text-[10px] font-medium text-slate-400 shrink-0 mt-auto">
         <div>Powered by Google Gemini</div>
-        <div>No Account Required</div>
+        <div>Secure Session</div>
       </footer>
     </div>
   );
